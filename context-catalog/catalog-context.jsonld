@@ -1,0 +1,32 @@
+{
+    "@context": {
+        "Module": "http://example.org/Module",
+        "Submodule": "http://example.org/Submodule",
+        "revision": "http://example.org/revision",
+        "organization": "http://example.org/organization",
+        "ietfWg": "http://example.org/ietfWg",
+        "namespace": "http://example.org/namespace",
+        "schema": "http://example.org/schema",
+        "generatedFrom": "http://example.org/generatedFrom",
+        "maturityLevel": "http://example.org/maturityLevel",
+        "documentName": "http://example.org/documentName",
+        "authorEmail": "http://example.org/authorEmail",
+        "reference": "http://example.org/reference",
+        "moduleClassification": "http://example.org/moduleClassification",
+        "compilationStatus": "http://example.org/compilationStatus",
+        "compilationResult": "http://example.org/compilationResult",
+        "prefix": "http://example.org/prefix",
+        "yangVersion": "http://example.org/yangVersion",
+        "contact": "http://example.org/contact",
+        "belongsTo": "http://example.org/belongsTo",
+        "treeType": "http://example.org/treeType",
+        "yangTree": "http://example.org/yangTree",
+        "expires": "http://example.org/expires",
+        "expired": "http://example.org/expired",
+        "semanticVersion": "http://example.org/semanticVersion",
+        "derivedSemanticVersion": "http://example.org/derivedSemanticVersion",
+        "includesSubmodule": "http://example.org/includesSubmodule",
+        "hasDependency": "http://example.org/hasDependency",
+        "hasDependent": "http://example.org/hasDependent"
+    }
+}
