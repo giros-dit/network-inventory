@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import sys
+import traceback
 
 import pandas as pd
 import pyangbind.lib.pybindJSON as pybindJSON
@@ -12,6 +13,8 @@ from catalog_connector.models.ngsi_ld.catalog import Module, Submodule
 from catalog_connector.models.yang import yang_catalog as binding
 
 logger = logging.getLogger(__name__)
+
+BATCH_SIZE = 20
 
 def chunks(lst, n):
     """
@@ -79,7 +82,7 @@ def compute_module_properties(
     return properties_dict
 
 def compute_dependency_id(df: pd.DataFrame, name: str, revision: str = None) -> str:
-    logger.info("Computing entity id for dependency %s" % name)
+    logger.debug("Computing entity id for dependency %s" % name)
     dependency_module = None
     if not revision:
         filtered_modules = df[df["name"] == name].sort_values(
@@ -233,7 +236,7 @@ if __name__ == "__main__":
     df["revision"] = pd.to_datetime(df["revision"], format="%Y-%m-%d", errors="coerce")
     # Build Python generator from module list for NGSI-LD transformation
     module_list_generator = chunks(
-        data["yang-catalog:catalog"]["modules"]["module"], 10
+        data["yang-catalog:catalog"]["modules"]["module"], BATCH_SIZE
     )
     while True:
         try:
@@ -247,11 +250,12 @@ if __name__ == "__main__":
             }
             yc = deserialize_yang(yang_batch)
             for index, module in yc.catalog.modules.module.iteritems():
-                logger.info("Parsing %s" % module.name)
+                logger.debug("Parsing %s" % module.name)
                 module_entity = build_module_entity(df, module)
                 logger.info("Created %s" % module_entity["id"])
-                logger.warning(module_entity)
                 ngsi_ld_api.createEntity(module_entity)
-
         except StopIteration:
             break
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            continue

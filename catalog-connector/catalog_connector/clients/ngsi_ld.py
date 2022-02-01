@@ -104,7 +104,7 @@ class NGSILDAPI():
         if response.status_code == 409:
             # Already created
             pass
-        if response.status_code == 400:
+        if response.status_code == 400 or response.status_code == 500:
             raise Exception
 
     # NGSI-LD Query Entity -> /entities
