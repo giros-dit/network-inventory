@@ -46,6 +46,19 @@ services:
       - "8080"
     volumes:
       - ./context-catalog:/web
+  platform-registry:
+    build:
+        context: ./platform-registry
+        dockerfile: docker/Dockerfile
+    hostname: platform-registry
+    container_name: platform-registry
+    environment:
+      APP_ENV: development
+      CONTEXT_BROKER_URL: "http://api-gateway:8080"
+    ports:
+      - "8090:8000"
+    volumes:
+      - ./platform-registry/platform_registry:/app
   zookeeper:
     image: wurstmeister/zookeeper
     container_name: stellio-zookeeper

@@ -1,0 +1,5 @@
+
+     <filter type="subtree">
+      <yang-library xmlns="urn:ietf:params:xml:ns:yang:ietf-yang-library">
+       </yang-library>
+     </filter>
