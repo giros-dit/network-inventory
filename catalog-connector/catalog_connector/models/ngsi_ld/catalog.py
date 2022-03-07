@@ -1,9 +1,7 @@
 from typing import List, Literal, Optional
 
-from catalog_connector.models.ngsi_ld.entity import (Entity, Property,
-                                                     Relationship)
+from catalog_connector.models.ngsi_ld.entity import Entity, Property, Relationship
 from pydantic import Field
-from pyrsistent import optional
 
 
 class Module(Entity):
@@ -13,10 +11,10 @@ class Module(Entity):
     type: Literal["Module"] = "Module"
     name: Property
     revision: Property
-    organization: Property
+    organization: Optional[Property]
     ietfWg: Optional[Property]
-    namespace: Property
-    schemaURL: Optional[Property] = Field(..., alias="schema")
+    namespace: Optional[Property]
+    schemaURL: Optional[Property] = Field(alias="schema")
     generatedFrom: Optional[Property]
     maturityLevel: Optional[Property]
     documentName: Optional[Property]
@@ -34,11 +32,11 @@ class Module(Entity):
     yangTree: Optional[Property]
     expires: Optional[Property]
     expired: Optional[Property]
-    includesSubmodule: Optional[List[Relationship]]
-    hasDependency: Optional[List[Relationship]]
-    hasDependent: Optional[List[Relationship]]
+    isDependencyOf: Optional[List[Relationship]]
+    isDependentOf: Optional[List[Relationship]]
     semanticVersion: Optional[Property]
     derivedSemanticVersion: Optional[Property]
+
 
 class Submodule(Module):
     class Config:

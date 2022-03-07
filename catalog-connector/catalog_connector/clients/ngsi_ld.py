@@ -13,19 +13,24 @@ CORE_CONTEXT = "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld"
 class Options(Enum):
     keyValues = "keyValues"
     sysAttrs = "sysAttrs"
+    replace = "replace"
+    update = "update"
+
 
 # Class built based on reference docs for the
 # Scorpio Broker FIWARE NGSI-LD API Walktrough.
 # See https://scorpio.readthedocs.io/en/latest/API_walkthrough.html
 
 
-class NGSILDAPI():
+class NGSILDAPI:
     def __init__(
-            self, url: str = "http://scorpio:9090",
-            headers: dict = {},
-            disable_ssl: bool = False,
-            debug: bool = False,
-            context: str = CORE_CONTEXT):
+        self,
+        url: str = "http://scorpio:9090",
+        headers: dict = {},
+        disable_ssl: bool = False,
+        debug: bool = False,
+        context: str = CORE_CONTEXT,
+    ):
 
         self.headers = headers
         self.url = url
@@ -35,15 +40,16 @@ class NGSILDAPI():
             total=10,
             status_forcelist=[429, 500, 502, 503, 504],
             method_whitelist=["HEAD", "GET", "PUT", "POST", "OPTIONS"],
-            backoff_factor=5
+            backoff_factor=5,
         )
         self._session = requests.Session()
         self._session.mount(self.url, HTTPAdapter(max_retries=retry_strategy))
         self.context = context
-        self.headers['Link'] = ('<{0}>;'
-                                ' rel="http://www.w3.org/ns/json-ld#context";'
-                                ' type="application/ld+json'
-                                ).format(self.context)
+        self.headers["Link"] = (
+            "<{0}>;"
+            ' rel="http://www.w3.org/ns/json-ld#context";'
+            ' type="application/ld+json'
+        ).format(self.context)
         self.debug = debug
         if self.debug:
             import logging
@@ -75,7 +81,7 @@ class NGSILDAPI():
         response = self._session.get(
             "{0}/version".format(self.url),
             verify=self.ssl_verification,
-            headers=self.headers
+            headers=self.headers,
         )
         return response.ok
 
@@ -86,7 +92,7 @@ class NGSILDAPI():
         response = self._session.get(
             "{0}/scorpio/v1/info/health".format(self.url),
             verify=self.ssl_verification,
-            headers=self.headers
+            headers=self.headers,
         )
         return response.ok
 
@@ -99,36 +105,36 @@ class NGSILDAPI():
             "{0}/ngsi-ld/v1/entities".format(self.url),
             verify=self.ssl_verification,
             headers=self.headers,
-            json=entity
+            json=entity,
         )
         if response.status_code == 409:
             # Already created
             pass
-        if response.status_code == 400 or response.status_code == 500:
+        if response.status_code == 400:
             raise Exception
 
     # NGSI-LD Query Entity -> /entities
-    def queryEntities(self, type: str, attrs: str = None,
-                      q: str = None,
-                      options: Options = None) -> dict:
+    def queryEntities(
+        self, type: str, attrs: str = None, q: str = None, options: Options = None
+    ) -> dict:
         """
         Retrieve a set of entities which matches
         a specific query from an NGSI-LD system.
         """
         params = {}
         if attrs:
-            params['attrs'] = attrs
+            params["attrs"] = attrs
         if type:
-            params['type'] = type
+            params["type"] = type
         if q:
-            params['q'] = q
+            params["q"] = q
         if options:
-            params['options'] = options
+            params["options"] = options
         response = self._session.get(
             "{0}/ngsi-ld/v1/entities".format(self.url),
             verify=self.ssl_verification,
             headers=self.headers,
-            params=params
+            params=params,
         )
         if response.status_code == 200:
             return response.json()
@@ -136,8 +142,13 @@ class NGSILDAPI():
             response.raise_for_status()
 
     # NGSI-LD Retrieve Entity -> /entities/{entityId}
-    def retrieveEntityById(self, entityId: str, attrs: str = None,
-                           type: str = None, options: Options = None) -> dict:
+    def retrieveEntityById(
+        self,
+        entityId: str,
+        attrs: str = None,
+        type: str = None,
+        options: Options = None,
+    ) -> dict:
         """
         Retrieve an specific Entity from an NGSI-LD system.
         It's possible to specify the Entity attributes to be retrieved
@@ -145,16 +156,16 @@ class NGSILDAPI():
         """
         params = {}
         if attrs:
-            params['attrs'] = attrs
+            params["attrs"] = attrs
         if type:
-            params['type'] = type
+            params["type"] = type
         if options:
-            params['options'] = options
+            params["options"] = options
         response = self._session.get(
             "{0}/ngsi-ld/v1/entities/{1}".format(self.url, entityId),
             verify=self.ssl_verification,
             headers=self.headers,
-            params=params
+            params=params,
         )
         if response.status_code == 200:
             return response.json()
@@ -170,7 +181,7 @@ class NGSILDAPI():
             "{0}/ngsi-ld/v1/entities/{1}/attrs".format(self.url, entityId),
             verify=self.ssl_verification,
             headers=self.headers,
-            json=fragment
+            json=fragment,
         )
         if response.status_code != 204:
             response.raise_for_status()
@@ -184,7 +195,7 @@ class NGSILDAPI():
             "{0}/ngsi-ld/v1/entities/{1}/attrs".format(self.url, entityId),
             verify=self.ssl_verification,
             headers=self.headers,
-            json=fragment
+            json=fragment,
         )
         if response.status_code != 204:
             response.raise_for_status()
@@ -197,7 +208,7 @@ class NGSILDAPI():
         response = self._session.delete(
             "{0}/ngsi-ld/v1/entities/{1}".format(self.url, entityId),
             verify=self.ssl_verification,
-            headers=self.headers
+            headers=self.headers,
         )
         if response.status_code != 204:
             response.raise_for_status()
@@ -211,7 +222,7 @@ class NGSILDAPI():
             "{0}/ngsi-ld/v1/subscriptions/".format(self.url),
             verify=self.ssl_verification,
             headers=self.headers,
-            json=subscription
+            json=subscription,
         )
         if response.status_code != 201:
             response.raise_for_status()
@@ -222,10 +233,9 @@ class NGSILDAPI():
         Retrieves a specific Subscription from an NGSI-LD system.
         """
         response = self._session.get(
-            "{0}/ngsi-ld/v1/subscriptions/{1}".format(self.url,
-                                                      subscriptionId),
+            "{0}/ngsi-ld/v1/subscriptions/{1}".format(self.url, subscriptionId),
             verify=self.ssl_verification,
-            headers=self.headers
+            headers=self.headers,
         )
         if response.status_code == 200:
             return response
@@ -239,12 +249,12 @@ class NGSILDAPI():
         """
         params = {}
         if limit:
-            params['limit'] = limit
+            params["limit"] = limit
         response = self._session.get(
             "{0}/ngsi-ld/v1/subscriptions".format(self.url),
             verify=self.ssl_verification,
             headers=self.headers,
-            params=params
+            params=params,
         )
         if response.status_code == 200:
             return response
@@ -257,10 +267,27 @@ class NGSILDAPI():
         Removes a specific Subscription from an NGSI-LD system.
         """
         response = self._session.delete(
-            "{0}/ngsi-ld/v1/subscriptions/{1}".format(self.url,
-                                                      subscriptionId),
+            "{0}/ngsi-ld/v1/subscriptions/{1}".format(self.url, subscriptionId),
             verify=self.ssl_verification,
-            headers=self.headers
+            headers=self.headers,
         )
         if response.status_code != 204:
             response.raise_for_status()
+
+    # NGSI-LD Entity Operations. Upsert -> /entityOperations/upsert
+    def batchEntityUpsert(
+        self, entities: list, options: Options = Options.replace.value
+    ):
+        """
+        Batch Entity create or update (upsert) within an NGSI-LD system.
+        """
+        params = {}
+        params["options"] = options
+        response = self._session.post(
+            "{0}/ngsi-ld/v1/entityOperations/upsert".format(self.url),
+            verify=self.ssl_verification,
+            headers=self.headers,
+            json=entities,
+            params=params,
+        )
+        return response
