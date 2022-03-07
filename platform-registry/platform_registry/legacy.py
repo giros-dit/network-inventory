@@ -225,4 +225,6 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
                 belongsTo=belongs_to_rel,
             )
             logger.info("Creating %s" % module_entity.id)
-            ngsi_ld_api.createEntity(module_entity.dict(exclude_none=True))
+            ngsi_ld_api.batchEntityUpsert(
+                module_entity.dict(exclude_none=True), "update"
+            )
