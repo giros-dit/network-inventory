@@ -1,0 +1,37 @@
+{
+	"info": {
+		"_postman_id": "d85c697f-7c3c-4fab-a1ee-a44f35242295",
+		"name": "Network Inventory",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Register ceos1",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"platform_id\": \"ceos1\",\n  \"platform_name\": \"cEOS\",\n  \"vendor\": \"Arista\",\n  \"software_version\": \"4.25.4M\",\n  \"gnmi\": {\n    \"address\": \"172.16.238.11\",\n    \"port\": 6030,\n    \"credentials\": {\n      \"username\": \"admin\",\n      \"password\": \"xxxx\"\n    }\n  },\n  \"netconf\": {\n    \"address\": \"172.16.238.11\",\n    \"port\": 830,\n    \"credentials\": {\n      \"username\": \"admin\",\n      \"password\": \"xxxx\"\n    }\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8090/platforms",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8090",
+					"path": [
+						"platforms"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

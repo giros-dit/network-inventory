@@ -57,9 +57,9 @@ class Protocol(Entity):
     name: Property
     address: Property
     port: Property
-    capabilities: Property
-    encodingFormats: Property
-    version: Property
+    capabilities: Optional[Property]
+    encodingFormats: Optional[Property]
+    version: Optional[Property]
     supportedBy: Relationship
 
 

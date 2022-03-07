@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 # NGSI-LD Context Broker
-BROKER_URI = os.getenv("BROKER_URI", "http://scorpio:9090")
+BROKER_URI = os.getenv("BROKER_URI", "http://gateway:9090")
 # Context Catalog
 CONTEXT_CATALOG_URI = os.getenv(
     "CONTEXT_CATALOG_URI", "http://context-catalog:8080/context.jsonld"

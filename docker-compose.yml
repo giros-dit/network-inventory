@@ -5,7 +5,8 @@ services:
     hostname: ceos1
     container_name: ceos1
     ports:
-      - "6030:6030"
+      - "6030"
+      - "830"
     command: /sbin/init  systemd.setenv=INTFTYPE=eth systemd.setenv=ETBA=1 systemd.setenv=SKIP_ZEROTOUCH_BARRIER_IN_SYSDBINIT=1 systemd.setenv=CEOS=1 systemd.setenv=EOS_PLATFORM=ceoslab systemd.setenv=container=docker
     privileged: true
     environment:
@@ -17,6 +18,7 @@ services:
       container: docker
     networks:
       default:
+        ipv4_address: 172.16.238.11
       net1:
       net2:
   ceos2:
@@ -24,7 +26,7 @@ services:
     hostname: ceos2
     container_name: ceos2
     ports:
-      - "6031:6030"
+      - "6030"
     command: /sbin/init  systemd.setenv=INTFTYPE=eth systemd.setenv=ETBA=1 systemd.setenv=SKIP_ZEROTOUCH_BARRIER_IN_SYSDBINIT=1 systemd.setenv=CEOS=1 systemd.setenv=EOS_PLATFORM=ceoslab systemd.setenv=container=docker
     privileged: true
     environment:
@@ -36,6 +38,7 @@ services:
       container: docker
     networks:
       default:
+        ipv4_address: 172.16.238.12
       net1:
       net2:
   context-catalog:
@@ -82,14 +85,14 @@ services:
   platform-registry:
     build:
       context: ./platform-registry
-      dockerfile: docker/Dockerfile
+      dockerfile: Dockerfile
     container_name: platform-registry
     environment:
       - BROKER_URI=${BROKER_URI}
       - CONTEXT_CATALOG_URI=${CONTEXT_CATALOG_URI}
     hostname: platform-registry
     ports:
-      - "8090:8000"
+      - "8090:8080"
     volumes:
       - ./platform-registry/platform_registry:/opt/inventory/platform-registry/platform_registry
   postgres:
@@ -127,6 +130,13 @@ services:
       driver: none
 
 networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.238.0/24
+          gateway: 172.16.238.1
   net1:
   net2:
 

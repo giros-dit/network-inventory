@@ -2,7 +2,7 @@ import logging
 from typing import List
 
 from ncclient import manager
-from ncclient.capabilities import Capabilities, Capability
+from ncclient.capabilities import Capability
 from pygnmi.client import gNMIclient
 
 from platform_registry.clients.ngsi_ld import NGSILDAPI
@@ -70,7 +70,7 @@ def build_module_set(platform: Platform, name: str = "default") -> ModuleSet:
     module_set_entity = ModuleSet(
         id="urn:ngsi-ld:ModuleSet:{0}:{1}".format(platform.id, name),
         name={"value": name},
-        definedBy=platform.id,
+        definedBy={"object": platform.id},
     )
     logger.info("Building %s" % module_set_entity.id)
     return module_set_entity
@@ -84,7 +84,7 @@ def build_platform(registration: Registration) -> Platform:
         softwareVersion={"value": registration.software_version},
     )
     logger.info("Building %s" % platform_entity.id)
-    return build_platform
+    return platform_entity
 
 
 def discover_gnmi_protocol(
@@ -95,7 +95,7 @@ def discover_gnmi_protocol(
     protocol_entity = Protocol(
         id="urn:ngsi-ld:Protocol:{0}:gnmi".format(platform.id),
         name={"value": "gnmi"},
-        address={"value": proto_config.address},
+        address={"value": str(proto_config.address)},
         port={"value": proto_config.port},
         encodingFormats={"value": encoding_formats},
         version={"value": version},
@@ -126,13 +126,13 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
 
     platform = build_platform(registration)
     logger.info("Creating %s" % platform.id)
-    ngsi_ld_api.createEntity(platform.dict(exclude_none=True))
+    ngsi_ld_api.batchEntityUpsert([platform.dict(exclude_none=True)])
 
     # Check gNMI support
     if registration.gnmi:
         gnmi = registration.gnmi
         gc = gNMIclient(
-            (gnmi.address, gnmi.port),
+            target=(str(gnmi.address), gnmi.port),
             username=gnmi.credentials.username,
             password=gnmi.credentials.password.get_secret_value(),
             insecure=True,
@@ -142,11 +142,11 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
         capabilities = gc.capabilities()
         gnmi_entity = discover_gnmi_protocol(capabilities, registration.gnmi, platform)
         logger.info("Creating %s" % gnmi_entity.id)
-        ngsi_ld_api.createEntity(gnmi_entity.dict(exclude_none=True))
+        ngsi_ld_api.batchEntityUpsert([gnmi_entity.dict(exclude_none=True)])
 
         credentials_entity = build_credentials(gnmi.credentials, gnmi_entity)
         logger.info("Creating %s" % credentials_entity.id)
-        ngsi_ld_api.createEntity(credentials_entity.dict(exclude_none=True))
+        ngsi_ld_api.batchEntityUpsert([credentials_entity.dict(exclude_none=True)])
 
     # Then NETCONF
     if registration.netconf:
@@ -178,16 +178,16 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
             nc_capabilities, registration.netconf, platform
         )
         logger.info("Creating %s" % netconf_entity.id)
-        ngsi_ld_api.createEntity(netconf_entity.dict(exclude_none=True))
+        ngsi_ld_api.batchEntityUpsert([netconf_entity.dict(exclude_none=True)])
 
         credentials_entity = build_credentials(netconf.credentials, netconf_entity)
         logger.info("Creating %s" % credentials_entity.id)
-        ngsi_ld_api.createEntity(credentials_entity.dict(exclude_none=True))
+        ngsi_ld_api.batchEntityUpsert([credentials_entity.dict(exclude_none=True)])
 
         # This is Legacy mechanism, set Module Set to "default"
         module_set_entity = build_module_set(platform)
         logger.info("Creating %s" % module_set_entity.id)
-        ngsi_ld_api.createEntity(module_set_entity.dict(exclude_none=True))
+        ngsi_ld_api.batchEntityUpsert([module_set_entity.dict(exclude_none=True)])
 
         # Thus far, rely on NETCONF capabilities to discover YANG modules
         # NETCONF hello retrieves features, deviations,
@@ -226,5 +226,5 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
             )
             logger.info("Creating %s" % module_entity.id)
             ngsi_ld_api.batchEntityUpsert(
-                module_entity.dict(exclude_none=True), "update"
+                [module_entity.dict(exclude_none=True)], "update"
             )

@@ -22,17 +22,17 @@ RUN pip install "poetry==$POETRY_VERSION"
 RUN python -m venv /venv
 
 # Copy app artifacts
-COPY docker/${APP_NAME}/pyproject.toml docker/${APP_NAME}/poetry.lock ./
+COPY pyproject.toml poetry.lock ./
 RUN poetry export -f requirements.txt --without-hashes | /venv/bin/pip install -r /dev/stdin
 
-COPY docker/${APP_NAME}/ .
+COPY . .
 RUN poetry build && /venv/bin/pip install dist/*.whl
 
 FROM base as final
 
 COPY --from=builder /venv /venv
 COPY --from=builder ${APP_DIR} .
-COPY docker/${APP_NAME}/docker-entrypoint.sh .
+COPY docker-entrypoint.sh .
 RUN chmod +x docker-entrypoint.sh
 
 CMD ["./docker-entrypoint.sh"]
