@@ -4,14 +4,16 @@ from typing import Optional
 from pydantic import BaseModel, SecretStr
 
 
-class Credentials(BaseModel):
+class CredentialsConfig(BaseModel):
     username: str
     password: SecretStr
+
 
 class ProtocolConfig(BaseModel):
     address: ipaddress.IPv4Address
     port: int
-    credentials: Credentials
+    credentials: CredentialsConfig
+
 
 class Registration(BaseModel):
     platform_id: str
@@ -21,5 +23,5 @@ class Registration(BaseModel):
     software_flavor: Optional[str]
     os_version: Optional[str]
     os_type: Optional[str]
-    gNMI: Optional[ProtocolConfig]
+    gnmi: Optional[ProtocolConfig]
     netconf: Optional[ProtocolConfig]

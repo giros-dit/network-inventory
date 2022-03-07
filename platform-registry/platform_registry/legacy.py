@@ -1,18 +1,24 @@
 import logging
+from typing import List
 
 from ncclient import manager
+from ncclient.capabilities import Capabilities, Capability
 from pygnmi.client import gNMIclient
 
 from platform_registry.clients.ngsi_ld import NGSILDAPI
 from platform_registry.models.ngsi_ld.platform import (
+    BelongsTo,
     Credentials,
     Module,
     ModuleSet,
     Platform,
     Protocol,
-    hasModule,
 )
-from platform_registry.models.rest import Registration
+from platform_registry.models.rest import (
+    CredentialsConfig,
+    ProtocolConfig,
+    Registration,
+)
 
 ORG_NAMESPACES_MAPPING = {
     "arista": ["arista.com", "urn:aristanetworks"],
@@ -45,47 +51,103 @@ def _get_org_from_namespace(namespace: str) -> str:
                 return org
 
 
-def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
-    # Produce Credentials entity
-    # Common to both protocols
+def build_credentials(
+    cred_config: CredentialsConfig, protocol: Protocol
+) -> Credentials:
+    # Build Credentials entity
     credentials_entity = Credentials(
-        id="urn:ngsi-ld:Credentials:{0}".format(registration.platform_id),
-        username={"value": registration.netconf.credentials.username},
-        password={
-            "value": registration.netconf.credentials.password.get_secret_value()
-        },
+        id="urn:ngsi-ld:Credentials:{0}".format(protocol.id),
+        username={"value": cred_config.username},
+        password={"value": cred_config.password.get_secret_value()},
+        hasProtocol={"object": protocol.id},
     )
-    logger.info("Creating %s" % credentials_entity.id)
-    ngsi_ld_api.createEntity(credentials_entity.dict(exclude_none=True))
-    module_entities = []
-    # Produce Protocol entities
-    protocol_entities = []
-    if registration.gNMI:
-        gnmi = registration.gNMI
-        host = (gnmi.address, gnmi.port)
+    logger.info("Building %s" % credentials_entity.id)
+    return credentials_entity
+
+
+def build_module_set(platform: Platform, name: str = "default") -> ModuleSet:
+    # Produce ModuleSet entity
+    module_set_entity = ModuleSet(
+        id="urn:ngsi-ld:ModuleSet:{0}:{1}".format(platform.id, name),
+        name={"value": name},
+        definedBy=platform.id,
+    )
+    logger.info("Building %s" % module_set_entity.id)
+    return module_set_entity
+
+
+def build_platform(registration: Registration) -> Platform:
+    platform_entity = Platform(
+        id="urn:ngsi-ld:Platform:{0}".format(registration.platform_id),
+        name={"value": registration.platform_name},
+        vendor={"value": registration.vendor},
+        softwareVersion={"value": registration.software_version},
+    )
+    logger.info("Building %s" % platform_entity.id)
+    return build_platform
+
+
+def discover_gnmi_protocol(
+    capabilities: dict, proto_config: ProtocolConfig, platform: Platform
+) -> Protocol:
+    encoding_formats = capabilities["supported_encodings"]
+    version = capabilities["gnmi_version"]
+    protocol_entity = Protocol(
+        id="urn:ngsi-ld:Protocol:{0}:gnmi".format(platform.id),
+        name={"value": "gnmi"},
+        address={"value": proto_config.address},
+        port={"value": proto_config.port},
+        encodingFormats={"value": encoding_formats},
+        version={"value": version},
+        supportedBy={"object": platform.id},
+    )
+    logger.info("Building %s" % protocol_entity.id)
+    return protocol_entity
+
+
+def discover_netconf_protocol(
+    nc_capabilities: List[Capability], proto_config: ProtocolConfig, platform: Platform
+) -> Protocol:
+    protocol_entity = Protocol(
+        id="urn:ngsi-ld:Protocol:{0}:netconf".format(platform.id),
+        name={"value": "netconf"},
+        address={"value": str(proto_config.address)},
+        port={"value": proto_config.port},
+        capabilities={
+            "value": [capability.namespace_uri for capability in nc_capabilities]
+        },
+        supportedBy={"object": platform.id},
+    )
+    logger.info("Building %s" % protocol_entity.id)
+    return protocol_entity
+
+
+def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
+
+    platform = build_platform(registration)
+    logger.info("Creating %s" % platform.id)
+    ngsi_ld_api.createEntity(platform.dict(exclude_none=True))
+
+    # Check gNMI support
+    if registration.gnmi:
+        gnmi = registration.gnmi
         gc = gNMIclient(
-            host,
+            (gnmi.address, gnmi.port),
             username=gnmi.credentials.username,
-            password=gnmi.credentials.password,
+            password=gnmi.credentials.password.get_secret_value(),
             insecure=True,
             debug=True,
         )
         gc.connect()
         capabilities = gc.capabilities()
-        encoding_formats = capabilities["supported_encodings"]
-        version = capabilities["gnmi_version"]
-        protocol_entity = Protocol(
-            id="urn:ngsi-ld:Protocol:{0}:gnmi".format(registration.platform_id),
-            name={"value": "gnmi"},
-            address={"value": gnmi.address},
-            port={"value": gnmi.port},
-            encodingFormats={"value": encoding_formats},
-            version={"value": version},
-            hasCredentials={"object": credentials_entity.id},
-        )
-        logger.info("Creating %s" % protocol_entity.id)
-        ngsi_ld_api.createEntity(protocol_entity.dict(exclude_none=True))
-        protocol_entities.append(protocol_entity)
+        gnmi_entity = discover_gnmi_protocol(capabilities, registration.gnmi, platform)
+        logger.info("Creating %s" % gnmi_entity.id)
+        ngsi_ld_api.createEntity(gnmi_entity.dict(exclude_none=True))
+
+        credentials_entity = build_credentials(gnmi.credentials, gnmi_entity)
+        logger.info("Creating %s" % credentials_entity.id)
+        ngsi_ld_api.createEntity(credentials_entity.dict(exclude_none=True))
+
     # Then NETCONF
     if registration.netconf:
         netconf = registration.netconf
@@ -101,49 +163,43 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
             look_for_keys=False,
             allow_agent=False,
         )
-        nc_capabilites = []
-        nc_modules = []
         capabilities = nc.server_capabilities
+        nc_capabilities = []
+        nc_modules = []
         for c_key in capabilities:
             capability = capabilities[c_key]
+            # NETCONF protocol capabilities
             if "module" not in capability.parameters:
-                nc_capabilites.append(capability)
+                nc_capabilities.append(capability)
+            # YANG modules
             else:
                 nc_modules.append(capability)
-        protocol_entity = Protocol(
-            id="urn:ngsi-ld:Protocol:{0}:netconf".format(registration.platform_id),
-            name={"value": "netconf"},
-            address={"value": str(netconf.address)},
-            port={"value": netconf.port},
-            capabilities={
-                "value": [capability.namespace_uri for capability in nc_capabilites]
-            },
-            hasCredentials={"object": credentials_entity.id},
+        netconf_entity = discover_netconf_protocol(
+            nc_capabilities, registration.netconf, platform
         )
-        logger.info("Creating %s" % protocol_entity.id)
-        ngsi_ld_api.createEntity(protocol_entity.dict(exclude_none=True))
-        protocol_entities.append(protocol_entity)
+        logger.info("Creating %s" % netconf_entity.id)
+        ngsi_ld_api.createEntity(netconf_entity.dict(exclude_none=True))
 
-        has_module_list = []
+        credentials_entity = build_credentials(netconf.credentials, netconf_entity)
+        logger.info("Creating %s" % credentials_entity.id)
+        ngsi_ld_api.createEntity(credentials_entity.dict(exclude_none=True))
+
+        # This is Legacy mechanism, set Module Set to "default"
+        module_set_entity = build_module_set(platform)
+        logger.info("Creating %s" % module_set_entity.id)
+        ngsi_ld_api.createEntity(module_set_entity.dict(exclude_none=True))
+
+        # Thus far, rely on NETCONF capabilities to discover YANG modules
+        # NETCONF hello retrieves features, deviations,
+        # and submodules (as other modules though)
         for module in nc_modules:
             name = module.parameters["module"]
             revision = module.parameters["revision"]
-            logger.warning(module.parameters)
             organization = _get_org_from_namespace(module.namespace_uri)
+            # Catch unknown organizations
             if not organization:
                 logger.error(module.namespace_uri)
-            module_entity = Module(
-                id="urn:ngsi-ld:Module:{0}:{1}:{2}".format(
-                    name, revision, organization
-                ),
-                name={"value": name},
-                revision={"value": revision},
-                organization={"value": organization},
-                namespace={"value": module.namespace_uri},
-            )
-            logger.info("Creating %s" % module_entity.id)
-            ngsi_ld_api.createEntity(module_entity.dict(exclude_none=True))
-            module_entities.append(module_entity)
+            # Build Module entity
             deviation = None
             feature = None
             if "deviations" in module.parameters:
@@ -152,34 +208,21 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
             if "features" in module.parameters:
                 feature = {"value": module.parameters["features"].split(",")}
                 logger.warning("Found feature %s" % feature)
-            has_module_rel = hasModule(
-                object=module_entity.id,
+            belongs_to_rel = BelongsTo(
+                object=module_set_entity.id,
                 deviation=deviation,
                 feature=feature,
-                datasetId=module_entity.id,
+                datasetId=module_set_entity.id,
             )
-            has_module_list.append(has_module_rel)
-
-    # Produce ModuleSet entity
-    module_set_entity = ModuleSet(
-        id="urn:ngsi-ld:ModuleSet:{0}:default".format(registration.platform_id),
-        name={"value": "default"},
-        hasModule=has_module_list,
-    )
-    logger.info("Creating %s" % module_set_entity.id)
-    ngsi_ld_api.createEntity(module_set_entity.dict(exclude_none=True))
-
-    # Produce Platform entity
-    protocol_relationships = []
-    for protocol in protocol_entities:
-        protocol_relationships.append({"object": protocol.id, "datasetId": protocol.id})
-    platform_entity = Platform(
-        id="urn:ngsi-ld:Platform:{0}".format(registration.platform_id),
-        name={"value": registration.platform_name},
-        vendor={"value": registration.vendor},
-        softwareVersion={"value": registration.software_version},
-        hasProtocol=protocol_relationships,
-        hasModuleSet=[{"object": module_set_entity.id}],
-    )
-    ngsi_ld_api.createEntity(platform_entity.dict(exclude_none=True))
-    logger.info("Creating %s" % platform_entity.id)
+            module_entity = Module(
+                id="urn:ngsi-ld:Module:{0}:{1}:{2}".format(
+                    name, revision, organization
+                ),
+                name={"value": name},
+                revision={"value": revision},
+                organization={"value": organization},
+                namespace={"value": module.namespace_uri},
+                belongsTo=belongs_to_rel,
+            )
+            logger.info("Creating %s" % module_entity.id)
+            ngsi_ld_api.createEntity(module_entity.dict(exclude_none=True))

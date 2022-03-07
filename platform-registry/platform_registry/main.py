@@ -4,7 +4,7 @@ import os
 from fastapi import FastAPI
 
 from platform_registry.clients.ngsi_ld import NGSILDAPI
-from platform_registry.legacy import loader
+from platform_registry.legacy import loader as legacy_loader
 from platform_registry.models.rest import Registration
 
 logger = logging.getLogger(__name__)
@@ -26,4 +26,4 @@ app = FastAPI(title="Platform Registry API", version="1.0.0")
 
 @app.post("/platforms/")
 async def register_platform(registration: Registration):
-    loader(registration, ngsi_ld)
+    legacy_loader(registration, ngsi_ld)
