@@ -1,5 +1,16 @@
 version: '3.9'
 services:
+  catalog-connector:
+    build:
+      context: ./catalog-connector
+      dockerfile: Dockerfile
+    container_name: catalog-connector
+    environment:
+      - BROKER_URI=${BROKER_URI}
+      - CONTEXT_CATALOG_URI=${CONTEXT_CATALOG_URI}
+    hostname: catalog-connector
+    volumes:
+      - ./catalog-connector/catalog_connector:/opt/inventory/catalog-connector/catalog_connector
   ceos1:
     image: "ceos-image:4.25.4M"
     hostname: ceos1

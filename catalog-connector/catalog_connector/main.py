@@ -229,13 +229,9 @@ def main(ngsi_ld_api: NGSILDAPI, local_catalog: bool):
     else:
         # Init YANGCatalog API Client
         yangcatalog_api = YangCatalogAPI()
-        catalog_json = yangcatalog_api.get_whole_catalog()
-        f = open("data.json", "w")
-        f.write(catalog_json)
-        f.close()
+        logger.info("Collecting data from YANG Catalog...")
+        catalog_data = yangcatalog_api.get_whole_catalog()
         logger.info("Loaded module data from YANG Catalog!")
-        # Load data from JSON file
-        catalog_data = json.load(catalog_json)
     # Build pandas DataFrame from module list for fast queries
     df = pd.json_normalize(catalog_data["yang-catalog:catalog"]["modules"]["module"])
     df["revision"] = pd.to_datetime(df["revision"], format="%Y-%m-%d", errors="coerce")
@@ -299,7 +295,7 @@ if __name__ == "__main__":
         help="Context Catalog URI.",
     )
     parser.add_argument(
-        "--local-catalog", dest="local_catalog", default=True, required=False
+        "--local-catalog", dest="local_catalog", default=False, required=False
     )
     argv = sys.argv[1:]
     known_args, _ = parser.parse_known_args(argv)
