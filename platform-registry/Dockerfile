@@ -32,7 +32,11 @@ FROM base as final
 
 COPY --from=builder /venv /venv
 COPY --from=builder ${APP_DIR} .
-COPY docker-entrypoint.sh .
-RUN chmod +x docker-entrypoint.sh
 
-CMD ["./docker-entrypoint.sh"]
+# Set variables to activate venv
+ENV PATH="/venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/venv"
+
+CMD uvicorn platform_registry.main:app --host 0.0.0.0 \
+    --port 8080 --reload \
+    --log-config platform_registry/config/log.yaml
