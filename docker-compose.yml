@@ -32,6 +32,8 @@ services:
         ipv4_address: 172.16.238.11
       net1:
       net2:
+    volumes:
+      - ./ceos-arista/ceos1/startup-config.cfg:/mnt/flash/startup-config
   ceos2:
     image: "ceos-image:4.25.4M"
     hostname: ceos2
@@ -52,6 +54,8 @@ services:
         ipv4_address: 172.16.238.12
       net1:
       net2:
+    volumes:
+      - ./ceos-arista/ceos2/startup-config.cfg:/mnt/flash/startup-config
   context-catalog:
     image: halverneus/static-file-server
     hostname: context-catalog

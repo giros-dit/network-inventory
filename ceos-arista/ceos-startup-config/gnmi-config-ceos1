@@ -1,4 +1,0 @@
-management api gnmi
-   transport grpc default
-!
-end
