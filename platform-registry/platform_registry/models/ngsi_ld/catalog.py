@@ -1,7 +1,6 @@
 from typing import List, Literal, Optional
 
-from catalog_connector.models.ngsi_ld.entity import (Entity, Property,
-                                                     Relationship)
+from catalog_connector.models.ngsi_ld.entity import Entity, Property, Relationship
 from pydantic import Field
 
 
@@ -34,10 +33,11 @@ class Module(Entity):
     expires: Optional[Property]
     expired: Optional[Property]
     includesSubmodule: Optional[List[Relationship]]
-    hasDependency: Optional[List[Relationship]]
-    hasDependent: Optional[List[Relationship]]
+    isDependencyOf: Optional[List[Relationship]]
+    isDependentOf: Optional[List[Relationship]]
     semanticVersion: Optional[Property]
     derivedSemanticVersion: Optional[Property]
+
 
 class Submodule(Module):
     class Config:
