@@ -11,59 +11,6 @@ services:
     hostname: catalog-connector
     volumes:
       - ./catalog-connector/catalog_connector:/opt/inventory/catalog-connector/catalog_connector
-  r1:
-    image: "ceos-image:4.28.0F"
-    hostname: r1
-    container_name: r1
-    ports:
-      - "6030"
-      - "830"
-    command: /sbin/init  systemd.setenv=INTFTYPE=eth systemd.setenv=ETBA=1 systemd.setenv=SKIP_ZEROTOUCH_BARRIER_IN_SYSDBINIT=1 systemd.setenv=CEOS=1 systemd.setenv=EOS_PLATFORM=ceoslab systemd.setenv=container=docker systemd.setenv=MAPETH0=1 systemd.setenv=MGMT_INTF=eth0
-    privileged: true
-    environment:
-      INTFTYPE: eth
-      ETBA: 1
-      SKIP_ZEROTOUCH_BARRIER_IN_SYSDBINIT: 1
-      CEOS: 1
-      EOS_PLATFORM: ceoslab
-      container: docker
-      MAPETH0: 1
-      MGMT_INTF: eth0
-    networks:
-      default:
-        ipv4_address: 172.16.238.11
-      r1r2:
-        ipv4_address: 10.0.0.11
-      vm1r1:
-        ipv4_address: 10.0.10.11
-    volumes:
-      - ./ceos-arista/r1/startup-config.cfg:/mnt/flash/startup-config
-  r2:
-    image: "ceos-image:4.28.0F"
-    hostname: r2
-    container_name: r2
-    ports:
-      - "6030"
-    command: /sbin/init  systemd.setenv=INTFTYPE=eth systemd.setenv=ETBA=1 systemd.setenv=SKIP_ZEROTOUCH_BARRIER_IN_SYSDBINIT=1 systemd.setenv=CEOS=1 systemd.setenv=EOS_PLATFORM=ceoslab systemd.setenv=container=docker systemd.setenv=MAPETH0=1 systemd.setenv=MGMT_INTF=eth0
-    privileged: true
-    environment:
-      INTFTYPE: eth
-      ETBA: 1
-      SKIP_ZEROTOUCH_BARRIER_IN_SYSDBINIT: 1
-      CEOS: 1
-      EOS_PLATFORM: ceoslab
-      container: docker
-      MAPETH0: 1
-      MGMT_INTF: eth0
-    networks:
-      default:
-        ipv4_address: 172.16.238.12
-      r1r2:
-        ipv4_address: 10.0.0.12
-      vm2r2:
-        ipv4_address: 10.0.20.12
-    volumes:
-      - ./ceos-arista/r2/startup-config.cfg:/mnt/flash/startup-config
   context-catalog:
     image: halverneus/static-file-server
     hostname: context-catalog
@@ -132,6 +79,59 @@ services:
       driver: none
     volumes:
       - scorpio-postgres-storage:/var/lib/postgresql/data
+  r1:
+    image: "ceos-image:4.27.3F"
+    hostname: r1
+    container_name: r1
+    ports:
+      - "6030"
+      - "830"
+    command: /sbin/init  systemd.setenv=INTFTYPE=eth systemd.setenv=ETBA=1 systemd.setenv=SKIP_ZEROTOUCH_BARRIER_IN_SYSDBINIT=1 systemd.setenv=CEOS=1 systemd.setenv=EOS_PLATFORM=ceoslab systemd.setenv=container=docker systemd.setenv=MAPETH0=1 systemd.setenv=MGMT_INTF=eth0
+    privileged: true
+    environment:
+      INTFTYPE: eth
+      ETBA: 1
+      SKIP_ZEROTOUCH_BARRIER_IN_SYSDBINIT: 1
+      CEOS: 1
+      EOS_PLATFORM: ceoslab
+      container: docker
+      MAPETH0: 1
+      MGMT_INTF: eth0
+    networks:
+      default:
+        ipv4_address: 172.16.238.11
+      r1r2:
+        ipv4_address: 10.0.0.11
+      vm1r1:
+        ipv4_address: 10.0.10.11
+    volumes:
+      - ./ceos-arista/r1/startup-config.cfg:/mnt/flash/startup-config
+  r2:
+    image: "ceos-image:4.27.3F"
+    hostname: r2
+    container_name: r2
+    ports:
+      - "6030"
+    command: /sbin/init  systemd.setenv=INTFTYPE=eth systemd.setenv=ETBA=1 systemd.setenv=SKIP_ZEROTOUCH_BARRIER_IN_SYSDBINIT=1 systemd.setenv=CEOS=1 systemd.setenv=EOS_PLATFORM=ceoslab systemd.setenv=container=docker systemd.setenv=MAPETH0=1 systemd.setenv=MGMT_INTF=eth0
+    privileged: true
+    environment:
+      INTFTYPE: eth
+      ETBA: 1
+      SKIP_ZEROTOUCH_BARRIER_IN_SYSDBINIT: 1
+      CEOS: 1
+      EOS_PLATFORM: ceoslab
+      container: docker
+      MAPETH0: 1
+      MGMT_INTF: eth0
+    networks:
+      default:
+        ipv4_address: 172.16.238.12
+      r1r2:
+        ipv4_address: 10.0.0.12
+      vm2r2:
+        ipv4_address: 10.0.20.12
+    volumes:
+      - ./ceos-arista/r2/startup-config.cfg:/mnt/flash/startup-config
   scorpio:
     image: scorpiobroker/scorpio:scorpio-aaio_2.1.1
     hostname: scorpio
