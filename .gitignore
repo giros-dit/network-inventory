@@ -143,5 +143,4 @@ cython_debug/
 .DS_Store
 
 # Arista Images
-cEOS64-lab-4.25.4M.tar.xz
-cEOS64-lab-4.28.0F.tar.xz
+cEOS64*.tar.xz
