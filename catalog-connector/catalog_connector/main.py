@@ -256,19 +256,22 @@ def main(ngsi_ld_api: NGSILDAPI, local_catalog: bool):
                 logger.info("Created %s" % module_entity.id)
 
                 # Now update other entities based on dependencies
-                dependents, dependencies = collect_dependencies(
+                dependencies, dependents = collect_dependencies(
                     module_entity.id, df, yang_module
                 )
-                logger.info("Updating dependents")
-                ngsi_ld_api.batchEntityUpsert(dependents, "update")
-                logger.info("Updating dependencies")
-                ngsi_ld_api.batchEntityUpsert(dependents, "update")
+                if dependencies:
+                    logger.info("Updating dependencies")
+                    ngsi_ld_api.batchEntityUpsert(dependencies, "update")
+
+                if dependents:
+                    logger.info("Updating dependents")
+                    ngsi_ld_api.batchEntityUpsert(dependents, "update")
 
             # Send batch of entities
             ngsi_ld_api.batchEntityUpsert(batch_entities, "update")
         except StopIteration:
             break
-        except Exception as e:
+        except Exception:
             logger.error(traceback.format_exc())
             continue
 
