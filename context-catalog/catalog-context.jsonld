@@ -25,7 +25,6 @@
         "expired": "http://example.org/expired",
         "semanticVersion": "http://example.org/semanticVersion",
         "derivedSemanticVersion": "http://example.org/derivedSemanticVersion",
-        "isDependencyOf": "http://example.org/isDependencyOf",
-        "isDependentOf": "http://example.org/isDependentOf"
+        "isDependencyOf": "http://example.org/isDependencyOf"
     }
 }

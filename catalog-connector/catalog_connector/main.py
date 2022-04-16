@@ -85,24 +85,23 @@ def compute_module_properties(
     return properties_dict
 
 
-def build_dependency(
-    module_id: str,
+def build_dependent(
     df: pd.DataFrame,
-    name: str,
-    revision: str = None,
-    schema: str = None,
-    dependency_type: Literal["dependency", "dependent"] = "dependency",
-) -> Union[Module, Submodule]:
-    logger.debug("Computing entity from dependency %s" % name)
-    dependency_module = None
+    dep_name: str,
+    dep_revision: str = None,
+    dep_schema: str = None,
+) -> dict:
+    dependent_id = None
     # (A) revision value takes preference when identifying the module
-    if revision:
+    if dep_revision:
         logger.info(
-            "Dependency {0} of {1} identified via 'revision' with value {2}".format(
-                name, module_id, str(revision)
+            "Dependency {0} identified via 'revision' with value {1}".format(
+                dep_name, str(dep_revision)
             )
         )
-        filtered_modules = df[(df["name"] == name) & (df["revision"] == str(revision))]
+        filtered_modules = df[
+            (df["name"] == dep_name) & (df["revision"] == str(dep_revision))
+        ]
         # Catch ghost dependency
         if filtered_modules.empty:
             organization = "unknown"
@@ -111,14 +110,20 @@ def build_dependency(
             dependency_module = filtered_modules.iloc[0]
             organization = dependency_module["organization"]
             module_type = dependency_module["module-type"]
+        # Generate dependent entity ID
+        dependent_id = "urn:ngsi-ld:{0}:{1}:{2}:{3}".format(
+            module_type.capitalize(), dep_name, dep_revision, organization
+        )
     # (B) use schema URL to identify the module
-    if not revision and schema:
+    if not dep_revision and dep_schema:
         logger.info(
-            "Dependency {0} of {1} identified via 'schema' with value {2}".format(
-                name, module_id, str(schema)
+            "Dependency {0} identified via 'schema' with value {1}".format(
+                dep_name, str(dep_schema)
             )
         )
-        filtered_modules = df[(df["name"] == name) & (df["schema"] == str(schema))]
+        filtered_modules = df[
+            (df["name"] == dep_name) & (df["schema"] == str(dep_schema))
+        ]
         # Catch ghost dependency
         if filtered_modules.empty:
             organization = "unknown"
@@ -127,15 +132,16 @@ def build_dependency(
             dependency_module = filtered_modules.iloc[0]
             organization = dependency_module["organization"]
             module_type = dependency_module["module-type"]
-    # (C) fallback mechanism: take latest revision of module
-    if not revision and not schema:
-        logger.info(
-            "Dependency {0} of {1} identified via 'latest revision' value".format(
-                name, module_id
-            )
+        # Generate dependent entity ID
+        dependent_id = "urn:ngsi-ld:{0}:{1}:{2}:{3}".format(
+            module_type.capitalize(), dep_name, dep_revision, organization
         )
-
-        filtered_modules = df[df["name"] == name].sort_values(
+    # (C) fallback mechanism: take latest revision of module
+    if not dep_revision and not dep_schema:
+        logger.info(
+            "Dependency {0} identified via 'latest revision' value".format(dep_name)
+        )
+        filtered_modules = df[df["name"] == dep_name].sort_values(
             by="revision", ascending=False
         )
         # Get latest revision
@@ -152,81 +158,37 @@ def build_dependency(
             revision = dependency_module["revision"]
             organization = dependency_module["organization"]
             module_type = dependency_module["module-type"]
-
-    # Build dependency or dependent relationship
-    depend_relationship = {}
-    if dependency_type == "dependency":
-        depend_relationship["isDependencyOf"] = [
-            {
-                "object": module_id,
-                "datasetId": module_id,
-            }
-        ]
-    # Then it's dependent
-    else:
-        depend_relationship["isDependentOf"] = [
-            {
-                "object": module_id,
-                "datasetId": module_id,
-            }
-        ]
-
-    # Generate entity ID
-    if module_type == "module":
-        return Module(
-            id="urn:ngsi-ld:Module:{0}:{1}:{2}".format(name, revision, organization),
-            name={"value": name},
-            revision={"value": revision},
-            organization={"value": organization},
-            **depend_relationship
-        )
-    else:
-        return Submodule(
-            id="urn:ngsi-ld:Submodule:{0}:{1}:{2}".format(name, revision, organization),
-            name={"value": name},
-            revision={"value": revision},
-            organization={"value": organization},
-            **depend_relationship
+        # Generate dependent entity ID
+        dependent_id = "urn:ngsi-ld:{0}:{1}:{2}:{3}".format(
+            module_type.capitalize(), dep_name, revision, organization
         )
 
+    return {
+        "object": dependent_id,
+        "datasetId": dependent_id,
+    }
 
-def collect_dependencies(
+
+def collect_dependents(
     module_id: str,
     df: pd.DataFrame,
     yang_data: binding.yc_module_yang_catalog__catalog_modules_module,
-) -> Tuple:
-    # Compute dependencies
-    dependencies = None
-
-    # Then this entity becomes a dependent of its dependencies
-    if yang_data.dependencies.items():
-        dependencies = []
-        for _, dependency in yang_data.dependencies.iteritems():
-            entity = build_dependency(
-                module_id,
-                df,
-                dependency.name,
-                dependency.revision,
-                dependency.schema,
-                "dependency",
-            )
-            dependencies.append(entity.dict(exclude_none=True))
-    # Then this entity becomes a dependency of its dependents
+) -> dict:
+    # Compute dependents
     dependents = None
+    # Then this entity becomes a dependent of its dependents
     if yang_data.dependents.items():
-        dependents = []
+        logger.info("Collecting dependents of {0}".format(module_id))
+        dependents = {"isDependencyOf": []}
         for _, dependent in yang_data.dependents.iteritems():
-            entity = build_dependency(
-                module_id,
-                df,
-                dependent.name,
-                dependent.revision,
-                dependent.schema,
-                "dependent",
+            dependent_object = build_dependent(
+                df, dependent.name, dependent.revision, dependent.schema
             )
-            dependents.append(entity.dict(exclude_none=True))
+            dependents["isDependencyOf"].append(dependent_object)
 
-    return dependencies, dependents
+        logger.info("Collected dependents {0}".format(dependents))
+
+    return dependents
 
 
 def build_module_entity(
@@ -240,6 +202,9 @@ def build_module_entity(
     properties = compute_module_properties(yang_data)
     if yang_data.module_type == "module":
         id = "urn:ngsi-ld:Module:{0}".format(yang_module_id)
+        dependents = collect_dependents(id, df, yang_data)
+        if dependents:
+            properties.update(dependents)
         return Module(
             id=id,
             name={"value": yang_data.name},
@@ -251,6 +216,9 @@ def build_module_entity(
     # Submodule then
     else:
         id = "urn:ngsi-ld:Submodule:{0}".format(yang_module_id)
+        dependents = collect_dependents(id, df, yang_data)
+        if dependents:
+            properties.update(dependents)
         return Submodule(
             id=id,
             name={"value": yang_data.name},
@@ -294,18 +262,6 @@ def main(ngsi_ld_api: NGSILDAPI, local_catalog: bool):
                     module_entity.dict(exclude_none=True, by_alias=True)
                 )
                 logger.info("Created %s" % module_entity.id)
-
-                # Now update other entities based on dependencies
-                dependencies, dependents = collect_dependencies(
-                    module_entity.id, df, yang_module
-                )
-                if dependencies:
-                    logger.info("Updating dependencies")
-                    ngsi_ld_api.batchEntityUpsert(dependencies, "update")
-
-                if dependents:
-                    logger.info("Updating dependents")
-                    ngsi_ld_api.batchEntityUpsert(dependents, "update")
 
             # Send batch of entities
             ngsi_ld_api.batchEntityUpsert(batch_entities, "update")
