@@ -90,11 +90,51 @@ def build_dependency(
     df: pd.DataFrame,
     name: str,
     revision: str = None,
+    schema: str = None,
     dependency_type: Literal["dependency", "dependent"] = "dependency",
 ) -> Union[Module, Submodule]:
     logger.debug("Computing entity from dependency %s" % name)
     dependency_module = None
-    if not revision:
+    # (A) revision value takes preference when identifying the module
+    if revision:
+        logger.info(
+            "Dependency {0} of {1} identified via 'revision' with value {2}".format(
+                name, module_id, str(revision)
+            )
+        )
+        filtered_modules = df[(df["name"] == name) & (df["revision"] == str(revision))]
+        # Catch ghost dependency
+        if filtered_modules.empty:
+            organization = "unknown"
+            module_type = "module"
+        else:
+            dependency_module = filtered_modules.iloc[0]
+            organization = dependency_module["organization"]
+            module_type = dependency_module["module-type"]
+    # (B) use schema URL to identify the module
+    if not revision and schema:
+        logger.info(
+            "Dependency {0} of {1} identified via 'schema' with value {2}".format(
+                name, module_id, str(schema)
+            )
+        )
+        filtered_modules = df[(df["name"] == name) & (df["schema"] == str(schema))]
+        # Catch ghost dependency
+        if filtered_modules.empty:
+            organization = "unknown"
+            module_type = "module"
+        else:
+            dependency_module = filtered_modules.iloc[0]
+            organization = dependency_module["organization"]
+            module_type = dependency_module["module-type"]
+    # (C) fallback mechanism: take latest revision of module
+    if not revision and not schema:
+        logger.info(
+            "Dependency {0} of {1} identified via 'latest revision' value".format(
+                name, module_id
+            )
+        )
+
         filtered_modules = df[df["name"] == name].sort_values(
             by="revision", ascending=False
         )
@@ -102,7 +142,7 @@ def build_dependency(
         filtered_modules["revision"] = filtered_modules["revision"].dt.strftime(
             "%Y-%m-%d"
         )
-        # Catch Ghost dependency
+        # Catch ghost dependency
         if filtered_modules.empty:
             revision = "unknown"
             organization = "unknown"
@@ -110,16 +150,6 @@ def build_dependency(
         else:
             dependency_module = filtered_modules.iloc[0]
             revision = dependency_module["revision"]
-            organization = dependency_module["organization"]
-            module_type = dependency_module["module-type"]
-    else:
-        filtered_modules = df[(df["name"] == name) & (df["revision"] == str(revision))]
-        # Catch Ghost dependency
-        if filtered_modules.empty:
-            organization = "unknown"
-            module_type = "module"
-        else:
-            dependency_module = filtered_modules.iloc[0]
             organization = dependency_module["organization"]
             module_type = dependency_module["module-type"]
 
@@ -173,7 +203,12 @@ def collect_dependencies(
         dependencies = []
         for _, dependency in yang_data.dependencies.iteritems():
             entity = build_dependency(
-                module_id, df, dependency.name, dependency.revision, "dependency"
+                module_id,
+                df,
+                dependency.name,
+                dependency.revision,
+                dependency.schema,
+                "dependency",
             )
             dependencies.append(entity.dict(exclude_none=True))
     # Then this entity becomes a dependency of its dependents
@@ -182,7 +217,12 @@ def collect_dependencies(
         dependents = []
         for _, dependent in yang_data.dependents.iteritems():
             entity = build_dependency(
-                module_id, df, dependent.name, dependent.revision, "dependent"
+                module_id,
+                df,
+                dependent.name,
+                dependent.revision,
+                dependent.schema,
+                "dependent",
             )
             dependents.append(entity.dict(exclude_none=True))
 
