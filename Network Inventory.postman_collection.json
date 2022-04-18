@@ -35,36 +35,420 @@
 						}
 					},
 					"response": []
-				},
+				}
+			]
+		},
+		{
+			"name": "Context Broker",
+			"item": [
 				{
-					"name": "Register cisco",
+					"name": "1. Find r1 router by ID",
 					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"platform_id\": \"ios-xr\",\n  \"platform_name\": \"IOS XRv 9000\",\n  \"vendor\": \"Cisco\",\n  \"software_version\": \"10\",\n  \"netconf\": {\n    \"address\": \"131.226.217.150\",\n    \"port\": 830,\n    \"credentials\": {\n      \"username\": \"admin\",\n      \"password\": \"C1sco12345\"\n    }\n  }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Link",
+								"value": "<{{context.jsonld}}>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\"",
+								"type": "text"
 							}
-						},
+						],
 						"url": {
-							"raw": "http://localhost:8090/platforms",
+							"raw": "http://{{broker}}/ngsi-ld/v1/entities/?type=Platform&q=id~%3Dr1",
 							"protocol": "http",
 							"host": [
-								"localhost"
+								"{{broker}}"
 							],
-							"port": "8090",
 							"path": [
-								"platforms"
+								"ngsi-ld",
+								"v1",
+								"entities",
+								""
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "Platform"
+								},
+								{
+									"key": "q",
+									"value": "id~%3Dr1"
+								}
 							]
-						}
+						},
+						"description": "This example returns the data of `urn:ngsi-ld:Building:farm001`. The NGSI-LD `@context` is supplied as a [`Link` header](https://www.w3.org/wiki/LinkHeader) to define the entities returned. The `ngsi-context.jsonld` `@context` file is just supplying short names for every attribute.\n\nThe full link header syntax can be seen below:\n\n```text\nLink: <https://fiware.github.io/data-models/context.jsonld>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\n```\n\nThe standard HTTP `Link` header allows metadata (in this case the `@context`) to be passed in without actually touching\nthe resource in question. In the case of NGSI-LD, the metadata is a file in `application/ld+json` format."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Check NMDA-support for r1 router",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Link",
+								"value": "<{{context.jsonld}}>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\"",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{broker}}/ngsi-ld/v1/entities/?type=Datastore&q=supportedBy%3D%3Durn%3Angsi-ld%3APlatform%3Ar1",
+							"protocol": "http",
+							"host": [
+								"{{broker}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entities",
+								""
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "Datastore"
+								},
+								{
+									"key": "q",
+									"value": "supportedBy%3D%3Durn%3Angsi-ld%3APlatform%3Ar1"
+								}
+							]
+						},
+						"description": "This example returns the data of `urn:ngsi-ld:Building:farm001`. The NGSI-LD `@context` is supplied as a [`Link` header](https://www.w3.org/wiki/LinkHeader) to define the entities returned. The `ngsi-context.jsonld` `@context` file is just supplying short names for every attribute.\n\nThe full link header syntax can be seen below:\n\n```text\nLink: <https://fiware.github.io/data-models/context.jsonld>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\n```\n\nThe standard HTTP `Link` header allows metadata (in this case the `@context`) to be passed in without actually touching\nthe resource in question. In the case of NGSI-LD, the metadata is a file in `application/ld+json` format."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get ModuleSet of r1 router",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Link",
+								"value": "<{{context.jsonld}}>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\"",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{broker}}/ngsi-ld/v1/entities/?type=ModuleSet&q=definedBy%3D%3Durn%3Angsi-ld%3APlatform%3Ar1",
+							"protocol": "http",
+							"host": [
+								"{{broker}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entities",
+								""
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "ModuleSet"
+								},
+								{
+									"key": "q",
+									"value": "definedBy%3D%3Durn%3Angsi-ld%3APlatform%3Ar1"
+								}
+							]
+						},
+						"description": "This example returns the data of `urn:ngsi-ld:Building:farm001`. The NGSI-LD `@context` is supplied as a [`Link` header](https://www.w3.org/wiki/LinkHeader) to define the entities returned. The `ngsi-context.jsonld` `@context` file is just supplying short names for every attribute.\n\nThe full link header syntax can be seen below:\n\n```text\nLink: <https://fiware.github.io/data-models/context.jsonld>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\n```\n\nThe standard HTTP `Link` header allows metadata (in this case the `@context`) to be passed in without actually touching\nthe resource in question. In the case of NGSI-LD, the metadata is a file in `application/ld+json` format."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Get interface modules that belong to ModuleSet of r1 router",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Link",
+								"value": "<{{context.jsonld}}>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\"",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{broker}}/ngsi-ld/v1/entities/?type=Module&q=belongsTo%3D%3Durn%3Angsi-ld%3AModuleSet%3Aurn%3Angsi-ld%3APlatform%3Ar1%3Adefault%3Bdescription~%3Dinterface&attrs=name%2Crevision%2C%20description%2Cschema%2CbelongsTo",
+							"protocol": "http",
+							"host": [
+								"{{broker}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entities",
+								""
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "Module"
+								},
+								{
+									"key": "q",
+									"value": "belongsTo%3D%3Durn%3Angsi-ld%3AModuleSet%3Aurn%3Angsi-ld%3APlatform%3Ar1%3Adefault%3Bdescription~%3Dinterface"
+								},
+								{
+									"key": "attrs",
+									"value": "name%2Crevision%2C%20description%2Cschema%2CbelongsTo"
+								}
+							]
+						},
+						"description": "This example returns the data of `urn:ngsi-ld:Building:farm001`. The NGSI-LD `@context` is supplied as a [`Link` header](https://www.w3.org/wiki/LinkHeader) to define the entities returned. The `ngsi-context.jsonld` `@context` file is just supplying short names for every attribute.\n\nThe full link header syntax can be seen below:\n\n```text\nLink: <https://fiware.github.io/data-models/context.jsonld>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\n```\n\nThe standard HTTP `Link` header allows metadata (in this case the `@context`) to be passed in without actually touching\nthe resource in question. In the case of NGSI-LD, the metadata is a file in `application/ld+json` format."
+					},
+					"response": []
+				},
+				{
+					"name": "5. Get module dependencies of openconfig-interfaces",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Link",
+								"value": "<{{context.jsonld}}>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\"",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{broker}}/ngsi-ld/v1/entities/?type=Module&q=hasDependents%3D%3Durn%3Angsi-ld%3AModule%3Aopenconfig-interfaces%3A2021-04-06%3Aopenconfig%3BbelongsTo%3D%3Durn%3Angsi-ld%3AModuleSet%3Aurn%3Angsi-ld%3APlatform%3Ar1%3Adefault&attrs=name%2Crevision%2Cschema",
+							"protocol": "http",
+							"host": [
+								"{{broker}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entities",
+								""
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "Module"
+								},
+								{
+									"key": "q",
+									"value": "hasDependents%3D%3Durn%3Angsi-ld%3AModule%3Aopenconfig-interfaces%3A2021-04-06%3Aopenconfig%3BbelongsTo%3D%3Durn%3Angsi-ld%3AModuleSet%3Aurn%3Angsi-ld%3APlatform%3Ar1%3Adefault"
+								},
+								{
+									"key": "attrs",
+									"value": "name%2Crevision%2Cschema"
+								}
+							]
+						},
+						"description": "This example returns the data of `urn:ngsi-ld:Building:farm001`. The NGSI-LD `@context` is supplied as a [`Link` header](https://www.w3.org/wiki/LinkHeader) to define the entities returned. The `ngsi-context.jsonld` `@context` file is just supplying short names for every attribute.\n\nThe full link header syntax can be seen below:\n\n```text\nLink: <https://fiware.github.io/data-models/context.jsonld>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\n```\n\nThe standard HTTP `Link` header allows metadata (in this case the `@context`) to be passed in without actually touching\nthe resource in question. In the case of NGSI-LD, the metadata is a file in `application/ld+json` format."
+					},
+					"response": []
+				},
+				{
+					"name": "55. Get modules that augment openconfig-interfaces",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Link",
+								"value": "<{{context.jsonld}}>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\"",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{broker}}/ngsi-ld/v1/entities/?type=Module&q=hasDependencies%3D%3Durn%3Angsi-ld%3AModule%3Aopenconfig-interfaces%3A2021-04-06%3Aopenconfig%3BbelongsTo%3D%3Durn%3Angsi-ld%3AModuleSet%3Aurn%3Angsi-ld%3APlatform%3Ar1%3Adefault&attrs=name,revision,schema",
+							"protocol": "http",
+							"host": [
+								"{{broker}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entities",
+								""
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "Module"
+								},
+								{
+									"key": "q",
+									"value": "hasDependencies%3D%3Durn%3Angsi-ld%3AModule%3Aopenconfig-interfaces%3A2021-04-06%3Aopenconfig%3BbelongsTo%3D%3Durn%3Angsi-ld%3AModuleSet%3Aurn%3Angsi-ld%3APlatform%3Ar1%3Adefault"
+								},
+								{
+									"key": "attrs",
+									"value": "name,revision,schema"
+								}
+							]
+						},
+						"description": "This example returns the data of `urn:ngsi-ld:Building:farm001`. The NGSI-LD `@context` is supplied as a [`Link` header](https://www.w3.org/wiki/LinkHeader) to define the entities returned. The `ngsi-context.jsonld` `@context` file is just supplying short names for every attribute.\n\nThe full link header syntax can be seen below:\n\n```text\nLink: <https://fiware.github.io/data-models/context.jsonld>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\n```\n\nThe standard HTTP `Link` header allows metadata (in this case the `@context`) to be passed in without actually touching\nthe resource in question. In the case of NGSI-LD, the metadata is a file in `application/ld+json` format."
+					},
+					"response": []
+				},
+				{
+					"name": "6. Get  submodule dependencies of openconfig-interfaces Copy",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Link",
+								"value": "<{{context.jsonld}}>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\"",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{broker}}/ngsi-ld/v1/entities/?type=Submodule&q=hasDependencies%3D%3DmoduleID%3BbelongsTo%3D%3DmoduleSetID&attrs=name%2Crevision%2Cschema",
+							"protocol": "http",
+							"host": [
+								"{{broker}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entities",
+								""
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "Submodule"
+								},
+								{
+									"key": "q",
+									"value": "hasDependencies%3D%3DmoduleID%3BbelongsTo%3D%3DmoduleSetID"
+								},
+								{
+									"key": "attrs",
+									"value": "name%2Crevision%2Cschema"
+								}
+							]
+						},
+						"description": "This example returns the data of `urn:ngsi-ld:Building:farm001`. The NGSI-LD `@context` is supplied as a [`Link` header](https://www.w3.org/wiki/LinkHeader) to define the entities returned. The `ngsi-context.jsonld` `@context` file is just supplying short names for every attribute.\n\nThe full link header syntax can be seen below:\n\n```text\nLink: <https://fiware.github.io/data-models/context.jsonld>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\n```\n\nThe standard HTTP `Link` header allows metadata (in this case the `@context`) to be passed in without actually touching\nthe resource in question. In the case of NGSI-LD, the metadata is a file in `application/ld+json` format."
+					},
+					"response": []
+				},
+				{
+					"name": "7. Get protocols supported by r1 router",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Link",
+								"value": "<{{context.jsonld}}>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\"",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{broker}}/ngsi-ld/v1/entities/?type=Protocol&q=supportedBy%3D%3Durn%3Angsi-ld%3APlatform%3Ar1",
+							"protocol": "http",
+							"host": [
+								"{{broker}}"
+							],
+							"path": [
+								"ngsi-ld",
+								"v1",
+								"entities",
+								""
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "Protocol"
+								},
+								{
+									"key": "q",
+									"value": "supportedBy%3D%3Durn%3Angsi-ld%3APlatform%3Ar1"
+								}
+							]
+						},
+						"description": "This example returns the data of `urn:ngsi-ld:Building:farm001`. The NGSI-LD `@context` is supplied as a [`Link` header](https://www.w3.org/wiki/LinkHeader) to define the entities returned. The `ngsi-context.jsonld` `@context` file is just supplying short names for every attribute.\n\nThe full link header syntax can be seen below:\n\n```text\nLink: <https://fiware.github.io/data-models/context.jsonld>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\n```\n\nThe standard HTTP `Link` header allows metadata (in this case the `@context`) to be passed in without actually touching\nthe resource in question. In the case of NGSI-LD, the metadata is a file in `application/ld+json` format."
 					},
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Fing module by name",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Link",
+						"value": "<{{context.jsonld}}>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\"",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://{{broker}}/ngsi-ld/v1/entities/?type=Module&q=name%3D%3D%22openconfig%2Dinterfaces%22&attrs=name",
+					"protocol": "http",
+					"host": [
+						"{{broker}}"
+					],
+					"path": [
+						"ngsi-ld",
+						"v1",
+						"entities",
+						""
+					],
+					"query": [
+						{
+							"key": "type",
+							"value": "Module"
+						},
+						{
+							"key": "q",
+							"value": "name%3D%3D%22openconfig%2Dinterfaces%22"
+						},
+						{
+							"key": "attrs",
+							"value": "name"
+						}
+					]
+				},
+				"description": "This example returns the data of `urn:ngsi-ld:Building:farm001`. The NGSI-LD `@context` is supplied as a [`Link` header](https://www.w3.org/wiki/LinkHeader) to define the entities returned. The `ngsi-context.jsonld` `@context` file is just supplying short names for every attribute.\n\nThe full link header syntax can be seen below:\n\n```text\nLink: <https://fiware.github.io/data-models/context.jsonld>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\n```\n\nThe standard HTTP `Link` header allows metadata (in this case the `@context`) to be passed in without actually touching\nthe resource in question. In the case of NGSI-LD, the metadata is a file in `application/ld+json` format."
+			},
+			"response": []
 		},
 		{
 			"name": "Get dependencies of module",
@@ -114,49 +498,30 @@
 			"response": []
 		},
 		{
-			"name": "Fing module by name",
+			"name": "Register cisco",
 			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "Link",
-						"value": "<{{context.jsonld}}>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\"",
-						"type": "text"
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"platform_id\": \"ios-xr\",\n  \"platform_name\": \"IOS XRv 9000\",\n  \"vendor\": \"Cisco\",\n  \"software_version\": \"10\",\n  \"netconf\": {\n    \"address\": \"131.226.217.150\",\n    \"port\": 830,\n    \"credentials\": {\n      \"username\": \"admin\",\n      \"password\": \"C1sco12345\"\n    }\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
 					}
-				],
+				},
 				"url": {
-					"raw": "http://{{broker}}/ngsi-ld/v1/entities/?type=Module&q=name%3D%3D%22openconfig%2Dinterfaces%22&attrs=name",
+					"raw": "http://localhost:8090/platforms",
 					"protocol": "http",
 					"host": [
-						"{{broker}}"
+						"localhost"
 					],
+					"port": "8090",
 					"path": [
-						"ngsi-ld",
-						"v1",
-						"entities",
-						""
-					],
-					"query": [
-						{
-							"key": "type",
-							"value": "Module"
-						},
-						{
-							"key": "q",
-							"value": "name%3D%3D%22openconfig%2Dinterfaces%22"
-						},
-						{
-							"key": "attrs",
-							"value": "name"
-						}
+						"platforms"
 					]
-				},
-				"description": "This example returns the data of `urn:ngsi-ld:Building:farm001`. The NGSI-LD `@context` is supplied as a [`Link` header](https://www.w3.org/wiki/LinkHeader) to define the entities returned. The `ngsi-context.jsonld` `@context` file is just supplying short names for every attribute.\n\nThe full link header syntax can be seen below:\n\n```text\nLink: <https://fiware.github.io/data-models/context.jsonld>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\n```\n\nThe standard HTTP `Link` header allows metadata (in this case the `@context`) to be passed in without actually touching\nthe resource in question. In the case of NGSI-LD, the metadata is a file in `application/ld+json` format."
+				}
 			},
 			"response": []
 		}
