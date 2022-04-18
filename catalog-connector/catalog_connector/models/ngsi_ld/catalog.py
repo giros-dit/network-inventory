@@ -32,7 +32,8 @@ class Module(Entity):
     yangTree: Optional[Property]
     expires: Optional[Property]
     expired: Optional[Property]
-    isDependencyOf: Optional[List[Relationship]]
+    hasDependencies: Optional[List[Relationship]]
+    hasDependents: Optional[List[Relationship]]
     semanticVersion: Optional[Property]
     derivedSemanticVersion: Optional[Property]
 

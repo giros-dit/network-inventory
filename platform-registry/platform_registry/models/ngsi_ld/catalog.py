@@ -33,7 +33,8 @@ class Module(Entity):
     expires: Optional[Property]
     expired: Optional[Property]
     includesSubmodule: Optional[List[Relationship]]
-    isDependencyOf: Optional[List[Relationship]]
+    hasDependencies: Optional[List[Relationship]]
+    hasDependents: Optional[List[Relationship]]
     semanticVersion: Optional[Property]
     derivedSemanticVersion: Optional[Property]
 
