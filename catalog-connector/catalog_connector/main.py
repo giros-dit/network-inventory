@@ -1,10 +1,10 @@
 import argparse
 import json
 import logging
-import pdb
 import sys
 import traceback
-from typing import Literal, Tuple, Union
+from datetime import datetime
+from typing import Union
 from urllib.parse import urlparse
 
 import pandas as pd
@@ -13,7 +13,6 @@ import pyangbind.lib.pybindJSON as pybindJSON
 from catalog_connector.clients.ngsi_ld import NGSILDAPI
 from catalog_connector.clients.yang_catalog import YangCatalogAPI
 from catalog_connector.models.ngsi_ld.catalog import Module, Submodule
-from catalog_connector.models.ngsi_ld.entity import Relationship
 from catalog_connector.models.yang import yang_catalog as binding
 
 logger = logging.getLogger(__name__)
@@ -116,19 +115,32 @@ def build_dep(
         filtered_modules = df[
             (df["name"] == dep_name) & (df["schema"] == str(dep_schema))
         ]
-
         revision = None
         # Catch ghost dependency
         if filtered_modules.empty:
-            revision = "unknown"
-            organization = "unknown"
-            module_type = "module"
+            # Try to figure out revision date from filename
+            revision = (
+                urlparse(dep_schema).path.split("/")[-1].split("@")[-1].split(".")[0]
+            )
+            try:
+                _ = datetime.strptime(revision, "%Y-%m-%d")
+                filtered_modules = df[
+                    (df["name"] == dep_name) & (df["revision"] == revision)
+                ]
+                # Catch ghost dependency
+                if filtered_modules.empty:
+                    organization = "unknown"
+                    module_type = "module"
+                else:
+                    dependency_module = filtered_modules.iloc[0]
+                    organization = dependency_module["organization"]
+                    module_type = dependency_module["module-type"]
+            except ValueError:
+                revision = "unknown"
+                organization = "unknown"
+                module_type = "module"
         # Module found in the database
         else:
-            # Format revision
-            filtered_modules["revision"] = filtered_modules["revision"].dt.strftime(
-                "%Y-%m-%d"
-            )
             dependency_module = filtered_modules.iloc[0]
             revision = dependency_module["revision"]
             organization = dependency_module["organization"]
@@ -137,26 +149,11 @@ def build_dep(
         dependency_id = "urn:ngsi-ld:{0}:{1}:{2}:{3}".format(
             module_type.capitalize(), dep_name, revision, organization
         )
-    # (C) fallback mechanism: take latest revision of module
+    # (C) fallback mechanism: set to unknown
     if not dep_revision and not dep_schema:
-        filtered_modules = df[df["name"] == dep_name].sort_values(
-            by="revision", ascending=False
-        )
-        # Get latest revision
-        # Format revision
-        filtered_modules["revision"] = filtered_modules["revision"].dt.strftime(
-            "%Y-%m-%d"
-        )
-        # Catch ghost dependency
-        if filtered_modules.empty:
-            revision = "unknown"
-            organization = "unknown"
-            module_type = "module"
-        else:
-            dependency_module = filtered_modules.iloc[0]
-            revision = dependency_module["revision"]
-            organization = dependency_module["organization"]
-            module_type = dependency_module["module-type"]
+        revision = "unknown"
+        organization = "unknown"
+        module_type = "module"
         # Generate dependency entity ID
         dependency_id = "urn:ngsi-ld:{0}:{1}:{2}:{3}".format(
             module_type.capitalize(), dep_name, revision, organization
@@ -249,7 +246,6 @@ def main(ngsi_ld_api: NGSILDAPI, local_catalog: bool):
         logger.info("Loaded module data from YANG Catalog!")
     # Build pandas DataFrame from module list for fast queries
     df = pd.json_normalize(catalog_data["yang-catalog:catalog"]["modules"]["module"])
-    df["revision"] = pd.to_datetime(df["revision"], format="%Y-%m-%d", errors="coerce")
     # Build Python generator from module list for NGSI-LD transformation
     module_list_generator = chunks(
         catalog_data["yang-catalog:catalog"]["modules"]["module"], BATCH_SIZE
@@ -263,14 +259,15 @@ def main(ngsi_ld_api: NGSILDAPI, local_catalog: bool):
             yc = deserialize_yang(yang_batch)
             batch_entities = []
             for _, yang_module in yc.catalog.modules.module.iteritems():
-                logger.debug("Parsing %s" % yang_module.name)
                 module_entity = build_module_entity(df, yang_module)
                 batch_entities.append(
                     module_entity.dict(exclude_none=True, by_alias=True)
                 )
             # Send batch of entities
-            ngsi_ld_api.batchEntityUpsert(batch_entities, "update")
-            logger.info("Created %s" % json.dumps(batch_entities))
+            res = ngsi_ld_api.batchEntityUpsert(batch_entities, "update")
+            logger.info(
+                "Batch request sent. Status code %s, %s" % (res.status_code, res.text)
+            )
         except StopIteration:
             break
         except Exception:
