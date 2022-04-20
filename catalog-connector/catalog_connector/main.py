@@ -2,7 +2,6 @@ import argparse
 import json
 import logging
 import sys
-import traceback
 from datetime import datetime
 from typing import Union
 from urllib.parse import urlparse
@@ -209,7 +208,7 @@ def build_module_entity(
         deps = collect_deps(id, df, yang_data)
         if deps:
             properties.update(deps)
-        return Module(
+        module = Module(
             id=id,
             name={"value": yang_data.name},
             revision={"value": yang_data.revision},
@@ -217,13 +216,14 @@ def build_module_entity(
             namespace={"value": yang_data.namespace},
             **properties
         )
+        return module
     # Submodule then
     else:
         id = "urn:ngsi-ld:Submodule:{0}".format(yang_module_id)
         deps = collect_deps(id, df, yang_data)
         if deps:
             properties.update(deps)
-        return Submodule(
+        submodule = Submodule(
             id=id,
             name={"value": yang_data.name},
             revision={"value": yang_data.revision},
@@ -231,6 +231,7 @@ def build_module_entity(
             namespace={"value": yang_data.namespace},
             **properties
         )
+        return submodule
 
 
 def main(ngsi_ld_api: NGSILDAPI, local_catalog: bool):
@@ -253,26 +254,20 @@ def main(ngsi_ld_api: NGSILDAPI, local_catalog: bool):
     while True:
         try:
             module_list_batch = next(module_list_generator)
-            yang_batch = {
-                "yang-catalog:catalog": {"modules": {"module": module_list_batch}}
-            }
-            yc = deserialize_yang(yang_batch)
-            batch_entities = []
-            for _, yang_module in yc.catalog.modules.module.iteritems():
-                module_entity = build_module_entity(df, yang_module)
-                batch_entities.append(
-                    module_entity.dict(exclude_none=True, by_alias=True)
-                )
-            # Send batch of entities
-            res = ngsi_ld_api.batchEntityUpsert(batch_entities, "update")
-            logger.info(
-                "Batch request sent. Status code %s, %s" % (res.status_code, res.text)
-            )
         except StopIteration:
             break
-        except Exception:
-            logger.error(traceback.format_exc())
-            continue
+        yang_batch = {
+            "yang-catalog:catalog": {"modules": {"module": module_list_batch}}
+        }
+        yc = deserialize_yang(yang_batch)
+        batch_entities = []
+        for _, yang_module in yc.catalog.modules.module.iteritems():
+            module_entity = build_module_entity(df, yang_module)
+            batch_entities.append(module_entity.dict(exclude_none=True, by_alias=True))
+        # Send batch of entities
+        ngsi_ld_api.batchEntityUpsert(batch_entities, "update")
+
+    logger.info("Synchronization with YANG Catalog completed!")
 
 
 if __name__ == "__main__":

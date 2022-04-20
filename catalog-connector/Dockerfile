@@ -1,5 +1,5 @@
 # Based on https://stackoverflow.com/a/57886655
-FROM python:3.9-slim-buster as base
+FROM python:3.9.10-slim-buster as base
 
 ENV PYTHONFAULTHANDLER=1 \
     PYTHONHASHSEED=random \
