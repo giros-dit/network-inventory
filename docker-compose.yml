@@ -20,13 +20,13 @@ services:
     volumes:
       - ./context-catalog:/web
   eureka:
-    image: scorpiobroker/scorpio:eureka-server_2.1.7
+    image: scorpiobroker/scorpio:eureka-server_2.1.13
     hostname: eureka
     container_name: eureka
     ports:
       - "8761"
   gateway:
-    image: scorpiobroker/scorpio:gateway_aaio_2.1.7
+    image: scorpiobroker/scorpio:gateway_aaio_2.1.13
     hostname: gateway
     container_name: gateway
     ports:
@@ -80,7 +80,7 @@ services:
     volumes:
       - scorpio-postgres-storage:/var/lib/postgresql/data
   r1:
-    image: "ceos-image:4.27.3F"
+    image: "ceos-image:4.27.4M"
     hostname: r1
     container_name: r1
     ports:
@@ -107,7 +107,7 @@ services:
     volumes:
       - ./ceos-arista/r1/startup-config.cfg:/mnt/flash/startup-config
   r2:
-    image: "ceos-image:4.27.3F"
+    image: "ceos-image:4.27.4M"
     hostname: r2
     container_name: r2
     ports:
@@ -133,7 +133,7 @@ services:
     volumes:
       - ./ceos-arista/r2/startup-config.cfg:/mnt/flash/startup-config
   scorpio:
-    image: scorpiobroker/scorpio:scorpio-aaio_2.1.7
+    image: scorpiobroker/scorpio:scorpio-aaio_2.1.13
     hostname: scorpio
     container_name: scorpio
     ports:

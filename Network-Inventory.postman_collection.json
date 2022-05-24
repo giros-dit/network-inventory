@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "d85c697f-7c3c-4fab-a1ee-a44f35242295",
-		"name": "Network Inventory",
+		"name": "Network-Inventory",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -550,6 +550,11 @@
 		{
 			"key": "context.jsonld",
 			"value": "http://context-catalog:8080/context.jsonld",
+			"type": "default"
+		},
+		{
+			"key": "broker",
+			"value": "localhost:9090",
 			"type": "default"
 		}
 	]
