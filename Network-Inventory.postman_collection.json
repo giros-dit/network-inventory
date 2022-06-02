@@ -15,7 +15,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"platform_id\": \"r1\",\n  \"platform_name\": \"cEOS\",\n  \"vendor\": \"Arista\",\n  \"software_version\": \"4.27.3F\",\n  \"gnmi\": {\n    \"address\": \"172.16.238.11\",\n    \"port\": 6030,\n    \"credentials\": {\n      \"username\": \"admin\",\n      \"password\": \"admin\"\n    }\n  },\n  \"netconf\": {\n    \"address\": \"172.16.238.11\",\n    \"port\": 830,\n    \"credentials\": {\n      \"username\": \"admin\",\n      \"password\": \"admin\"\n    }\n  }\n}",
+							"raw": "{\n  \"platform_id\": \"r1\",\n  \"platform_name\": \"cEOS\",\n  \"vendor\": \"Arista\",\n  \"software_version\": \"4.27.4M\",\n  \"gnmi\": {\n    \"address\": \"172.16.238.11\",\n    \"port\": 6030,\n    \"credentials\": {\n      \"username\": \"admin\",\n      \"password\": \"admin\"\n    }\n  },\n  \"netconf\": {\n    \"address\": \"172.16.238.11\",\n    \"port\": 830,\n    \"credentials\": {\n      \"username\": \"admin\",\n      \"password\": \"admin\"\n    }\n  }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
