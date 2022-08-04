@@ -106,8 +106,8 @@ def build_dep(
             organization = dependency_module["organization"]
             module_type = dependency_module["module-type"]
         # Generate dependency entity ID
-        dependency_id = "urn:ngsi-ld:{0}:{1}:{2}:{3}".format(
-            module_type.capitalize(), dep_name, dep_revision, organization
+        dependency_id = "urn:ngsi-ld:{0}:{1}:{2}".format(
+            module_type.capitalize(), dep_name, dep_revision
         )
     # (B) use schema URL to identify the module
     if not dep_revision and dep_schema:
@@ -199,9 +199,8 @@ def build_module_entity(
 ) -> Union[Module, Submodule]:
 
     # Compute properties
-    yang_module_id = "{0}:{1}:{2}".format(
-        yang_data.name, yang_data.revision, yang_data.organization
-    )
+    yang_module_id = "{0}:{1}".format(
+        yang_data.name, yang_data.revision)
     properties = compute_module_properties(yang_data)
     if yang_data.module_type == "module":
         id = "urn:ngsi-ld:Module:{0}".format(yang_module_id)
