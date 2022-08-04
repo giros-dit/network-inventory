@@ -1,9 +1,17 @@
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Union
 
-from platform_registry.models.ngsi_ld.entity import Entity, Property, Relationship
+from platform_registry.models.ngsi_ld.entity import (Entity, Property,
+                                                     Relationship)
+from pydantic import Extra
 
 
 class BelongsTo(Relationship):
+
+    class Config:
+        validate_assignment = True
+        extra = Extra.forbid
+        allow_population_by_field_name = True
+
     conformanceType: Optional[Property]
     deviation: Optional[Property]
     feature: Optional[Property]
@@ -11,6 +19,12 @@ class BelongsTo(Relationship):
 
 
 class Credentials(Entity):
+
+    class Config:
+        validate_assignment = True
+        extra = Extra.forbid
+        allow_population_by_field_name = True
+
     type: Literal["Credentials"] = "Credentials"
     hasProtocol: Relationship
     username: Property
@@ -18,31 +32,61 @@ class Credentials(Entity):
 
 
 class Datastore(Entity):
+
+    class Config:
+        validate_assignment = True
+        extra = Extra.forbid
+        allow_population_by_field_name = True
+
     type: Literal["Datastore"] = "Datastore"
-    hasSchema: Relationship
     name: Property
+    supportedBy: Relationship
 
 
 class HasSubmodule(Relationship):
+
+    class Config:
+        validate_assignment = True
+        extra = Extra.forbid
+        allow_population_by_field_name = True
+
     location: Optional[Property]
 
 
 class Module(Entity):
+
+    class Config:
+        validate_assignment = True
+        extra = Extra.forbid
+        allow_population_by_field_name = True
+
     type: Literal["Module"] = "Module"
     belongsTo: Optional[BelongsTo]
     name: Property
-    namespace: Property
-    organization: Property
+    namespace: Optional[Property]
+    organization: Optional[Property]
     revision: Property
 
 
 class ModuleSet(Entity):
+
+    class Config:
+        validate_assignment = True
+        extra = Extra.forbid
+        allow_population_by_field_name = True
+
     type: Literal["ModuleSet"] = "ModuleSet"
-    definedBy: Relationship
+    definedBy: Optional[Union[Relationship, List[Relationship]]]
     name: Property
 
 
 class Platform(Entity):
+
+    class Config:
+        validate_assignment = True
+        extra = Extra.forbid
+        allow_population_by_field_name = True
+
     type: Literal["Platform"] = "Platform"
     name: Property
     vendor: Property
@@ -53,6 +97,12 @@ class Platform(Entity):
 
 
 class Protocol(Entity):
+
+    class Config:
+        validate_assignment = True
+        extra = Extra.forbid
+        allow_population_by_field_name = True
+
     type: Literal["Protocol"] = "Protocol"
     name: Property
     address: Property
@@ -64,12 +114,24 @@ class Protocol(Entity):
 
 
 class Schema(Entity):
+
+    class Config:
+        validate_assignment = True
+        extra = Extra.forbid
+        allow_population_by_field_name = True
+
     type: Literal["Schema"] = "Schema"
-    implementedBy: Relationship
+    implementedBy: Union[Relationship, List[Relationship]]
     name: Property
 
 
 class Submodule(Entity):
+
+    class Config:
+        validate_assignment = True
+        extra = Extra.forbid
+        allow_population_by_field_name = True
+
     type: Literal["Submodule"] = "Submodule"
     isSubmoduleOf: Relationship
     name: Property

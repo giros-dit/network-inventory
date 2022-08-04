@@ -1,0 +1,5 @@
+
+     <filter type="subtree">
+      <netconf-state xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-monitoring">
+       </netconf-state>
+     </filter>

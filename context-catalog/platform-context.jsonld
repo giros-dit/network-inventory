@@ -4,7 +4,7 @@
         "username": "http://example.org/username",
         "password": "http://example.org/password",
         "Datastore": "http://example.org/Datastore",
-        "hasSchema": "http://example.org/hasSchema",
+        "supportedBy": "http://example.org/supportedBy",
         "Module": "http://example.org/Module",
         "revision": "http://example.org/revision",
         "namespace": "http://example.org/namespace",
