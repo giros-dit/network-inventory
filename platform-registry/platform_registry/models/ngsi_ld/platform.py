@@ -133,6 +133,7 @@ class Submodule(Entity):
         allow_population_by_field_name = True
 
     type: Literal["Submodule"] = "Submodule"
+    belongsTo: Optional[BelongsTo]
     isSubmoduleOf: Relationship
     name: Property
     revision: Property

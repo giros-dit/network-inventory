@@ -141,15 +141,17 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
         # Collect modules from YANG Library, if supported
         for nc_module in nc_modules:
             if nc_module.parameters["module"] == "ietf-yang-library":
+                logger.info("Platform implements YANG Library")
                 # Check YANG Library latest release (RFC 8525)
                 if nc_module.parameters["revision"] == "2019-01-04":
+                    logger.info(
+                        "Supported 2019-01-04 version of YANG Library (RFC 8525)")
                     #load_yang_library_rfc8525()
                     filter_path = "netconf_filters/yang-library-rfc8525.xml"
                     yl_filter = open(os.path.join(script_dir, filter_path)).read()
                     netconf_reply = nc.get(yl_filter).xml
                     tree = ET.fromstring(netconf_reply)
                     reply_data = tree[0][0]
-                    logger.info(reply_data)
 
                     # Produce Datastore entity
                     datastore_list = reply_data.iterfind("datastore", NS)
@@ -204,7 +206,6 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
                                 schema_name = sch.find("name", NS).text
                                 schema_id = "urn:ngsi-ld:Schema:{0}:{1}".format(
                                     platform_entity.id.split(":")[-1], schema_name)
-                                logger.warning(schema_id)
                                 schemas.append(
                                     {"type": "Relationship",
                                     "object": schema_id,
@@ -272,13 +273,19 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
                                 name = submodule.find("name", NS).text
                                 revision = submodule.find("revision", NS).text
 
+                                belongs_to_rel = BelongsTo(
+                                    object=module_set_entity.id,
+                                    datasetId=module_set_entity.id
+                                )
+
                                 submodule_entity = Submodule(
                                 id="urn:ngsi-ld:Submodule:{0}:{1}".format(
                                     name, revision
                                 ),
                                 name={"value": name},
                                 revision={"value": revision},
-                                isSubmoduleOf={"object": module_entity.id}
+                                isSubmoduleOf={"object": module_entity.id},
+                                belongsTo=belongs_to_rel
                             )
                             logger.info("Creating %s" % submodule_entity.id)
                             ngsi_ld_api.batchEntityUpsert(
@@ -292,9 +299,6 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
                             revision = module.find("revision", NS).text
                             namespace = module.find("namespace", NS).text
                             submodule_list = module.findall("submodule", NS)
-
-                            logger.warning("Imported")
-                            logger.warning(name)
 
                             # Build Module entity
                             belongs_to_rel = BelongsTo(
@@ -321,30 +325,37 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
                                 name = submodule.find("name", NS).text
                                 revision = submodule.find("revision", NS).text
 
+                                belongs_to_rel = BelongsTo(
+                                    object=module_set_entity.id,
+                                    datasetId=module_set_entity.id
+                                )
+
                                 submodule_entity = Submodule(
-                                id="urn:ngsi-ld:Submodule:{0}:{1}".format(
-                                    name, revision
-                                ),
-                                name={"value": name},
-                                revision={"value": revision},
-                                isSubmoduleOf={"object": module_entity.id}
-                            )
-                            logger.info("Creating %s" % submodule_entity.id)
-                            ngsi_ld_api.batchEntityUpsert(
-                                [submodule_entity.dict(exclude_none=True)], "update"
-                            )
+                                    id="urn:ngsi-ld:Submodule:{0}:{1}".format(
+                                        name, revision
+                                    ),
+                                    name={"value": name},
+                                    revision={"value": revision},
+                                    isSubmoduleOf={"object": module_entity.id},
+                                    belongsTo=belongs_to_rel
+                                )
+                                logger.info("Creating %s" % submodule_entity.id)
+                                ngsi_ld_api.batchEntityUpsert(
+                                    [submodule_entity.dict(exclude_none=True)], "update"
+                                )
 
                     modules_discovered = True
 
                 # Check YANG Library first release (RFC 7895)
                 elif nc_module.parameters["revision"] == "2016-06-21":
+                    logger.info(
+                        "Supported 2016-06-21 version of YANG Library (RFC 7895)")
                     #load_yang_library_rfc7895()
                     filter_path = "netconf_filters/yang-library-rfc7895.xml"
                     yl_filter = open(os.path.join(script_dir, filter_path)).read()
                     netconf_reply = nc.get(yl_filter).xml
                     tree = ET.fromstring(netconf_reply)
                     reply_data = tree[0][0]
-                    logger.info(reply_data)
                     module_set_id = reply_data.find("module-set-id", NS).text
 
                     # Produce ModuleSet entity
@@ -409,18 +420,24 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
                             name = submodule.find("name", NS).text
                             revision = submodule.find("revision", NS).text
 
+                            belongs_to_rel = BelongsTo(
+                                object=module_set_entity.id,
+                                datasetId=module_set_entity.id
+                            )
+
                             submodule_entity = Submodule(
-                            id="urn:ngsi-ld:Submodule:{0}:{1}".format(
-                                name, revision
-                            ),
-                            name={"value": name},
-                            revision={"value": revision},
-                            isSubmoduleOf={"object": module_entity.id}
-                        )
-                        logger.info("Creating %s" % submodule_entity.id)
-                        ngsi_ld_api.batchEntityUpsert(
-                            [submodule_entity.dict(exclude_none=True)], "update"
-                        )
+                                id="urn:ngsi-ld:Submodule:{0}:{1}".format(
+                                    name, revision
+                                ),
+                                name={"value": name},
+                                revision={"value": revision},
+                                isSubmoduleOf={"object": module_entity.id},
+                                belongsTo=belongs_to_rel
+                            )
+                            logger.info("Creating %s" % submodule_entity.id)
+                            ngsi_ld_api.batchEntityUpsert(
+                                [submodule_entity.dict(exclude_none=True)], "update"
+                            )
                     modules_discovered = True
                 else:
                     logger.error("YANG Library {0} release not supported.".format(
@@ -430,6 +447,7 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
 
         # Discover modules through NETCONF capabalities
         if not modules_discovered:
+            logger.info("Collecting modules through legacy NETCONF capabilities mechanism")
             netconf_legacy_loader(
                 platform=platform_entity,netconf=netconf_entity,
                 credentials=credentials_entity, ngsi_ld_api=ngsi_ld_api)
@@ -452,12 +470,14 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
         logger.info("Creating %s" % gnmi_entity.id)
         ngsi_ld_api.batchEntityUpsert([gnmi_entity.dict(exclude_none=True)])
 
-        credentials_entity = build_credentials(gnmi.credentials, gnmi_entity)
+        credentials_entity = build_credentials(
+            gnmi.credentials, gnmi_entity, platform_entity)
         logger.info("Creating %s" % credentials_entity.id)
         ngsi_ld_api.batchEntityUpsert([credentials_entity.dict(exclude_none=True)])
 
         # Discover modules through gNMI capabalities
         if not modules_discovered:
+            logger.info("Collecting modules through legacy gNMI capabilities mechanism")
             gnmi_legacy_loader(
                 platform=platform_entity,gnmi=gnmi_entity,
                 credentials=credentials_entity,ngsi_ld_api=ngsi_ld_api)

@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 def build_module_set(platform: Platform, name: str = "default") -> ModuleSet:
     # Produce ModuleSet entity
     module_set_entity = ModuleSet(
-        id="urn:ngsi-ld:ModuleSet:{0}:{1}".format(platform.id, name),
+        id="urn:ngsi-ld:ModuleSet:{0}:{1}".format(
+            platform.id.split(":")[-1], name),
         name={"value": name},
         definedBy={"object": platform.id},
     )
