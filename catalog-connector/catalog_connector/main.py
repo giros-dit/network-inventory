@@ -103,7 +103,6 @@ def build_dep(
             module_type = "module"
         else:
             dependency_module = filtered_modules.iloc[0]
-            organization = dependency_module["organization"]
             module_type = dependency_module["module-type"]
         # Generate dependency entity ID
         dependency_id = "urn:ngsi-ld:{0}:{1}:{2}".format(
@@ -128,7 +127,6 @@ def build_dep(
                 ]
                 # Catch ghost dependency
                 if filtered_modules.empty:
-                    organization = "unknown"
                     module_type = "module"
                 else:
                     dependency_module = filtered_modules.iloc[0]
@@ -136,17 +134,15 @@ def build_dep(
                     module_type = dependency_module["module-type"]
             except ValueError:
                 revision = "unknown"
-                organization = "unknown"
                 module_type = "module"
         # Module found in the database
         else:
             dependency_module = filtered_modules.iloc[0]
             revision = dependency_module["revision"]
-            organization = dependency_module["organization"]
             module_type = dependency_module["module-type"]
         # Generate dependency entity ID
-        dependency_id = "urn:ngsi-ld:{0}:{1}:{2}:{3}".format(
-            module_type.capitalize(), dep_name, revision, organization
+        dependency_id = "urn:ngsi-ld:{0}:{1}:{2}".format(
+            module_type.capitalize(), dep_name, revision
         )
     # (C) fallback mechanism: set to unknown
     if not dep_revision and not dep_schema:
@@ -154,8 +150,8 @@ def build_dep(
         organization = "unknown"
         module_type = "module"
         # Generate dependency entity ID
-        dependency_id = "urn:ngsi-ld:{0}:{1}:{2}:{3}".format(
-            module_type.capitalize(), dep_name, revision, organization
+        dependency_id = "urn:ngsi-ld:{0}:{1}:{2}".format(
+            module_type.capitalize(), dep_name, revision
         )
 
     return {

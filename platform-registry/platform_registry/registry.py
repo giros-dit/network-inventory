@@ -390,8 +390,8 @@ def loader(registration: Registration, ngsi_ld_api: NGSILDAPI) -> None:
                         if deviation_list:
                             deviation = {"value": []}
                             for dev in deviation_list:
-                                name = dev.find("name", NS).text
-                                deviation["value"].append(name)
+                                dev_name = dev.find("name", NS).text
+                                deviation["value"].append(dev_name)
 
                         # Build Module entity
                         belongs_to_rel = BelongsTo(
